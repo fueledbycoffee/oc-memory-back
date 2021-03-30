@@ -39,7 +39,9 @@ const connectionString = `${config.mongodb.connStr}/${config.mongodb.database}`;
 
 if(process.env.MONGODB_URI)
   connectionString = process.env.MONGODB_URI;
-  
+
+console.log("Running with connection string : ", connectionString);
+
 mongoose.connect(
   connectionString,
   {
