@@ -1,0 +1,76 @@
+#!/usr/bin/env node
+
+/**
+ * On charge les dépendances 
+ */
+
+const app = require('../app');
+const debug = require('debug')('memory-back:server');
+const http = require('http');
+const { normalizePort } = require('../tools/portNormalizer');
+const config = require('../config.json');
+
+/**
+ * On récupère le port depuis les variables d'environnement, le fichier de config et à défaut le port 3000
+ */
+
+const port = normalizePort(process.env.PORT || config.http.port || '3000');
+app.set('port', port);
+
+/**
+ * On crée le serveur HTTP en lui passant la configuration d'express crée dans le app.js
+ */
+
+const server = http.createServer(app);
+
+/**
+ * On écoute sur le port et l'interface réseau sur lequel écouter
+ */
+server.listen(port, config.http.listen);
+
+//#region GESTION D'AFFICHAGE DES STATUTS DU SERVEUR HTTP
+/**
+ * Fonction d'écoute qui gère les erreur du serveur HTTP (port déjà bindé etc.)
+ */
+
+const onError = (error) => {
+  if (error.syscall !== 'listen') {
+    throw error;
+  }
+
+  const bind = typeof port === 'string'
+    ? 'Pipe ' + port
+    : 'Port ' + port;
+
+  // handle specific listen errors with friendly messages
+  switch (error.code) {
+    case 'EACCES':
+      console.error(bind + ' requires elevated privileges');
+      process.exit(1);
+      break;
+    case 'EADDRINUSE':
+      console.error(bind + ' is already in use');
+      process.exit(1);
+      break;
+    default:
+      throw error;
+  }
+}
+
+/**
+ * Fonction d'écoute pour quand le serveur est "prêt"
+ */
+
+const onListening = () => {
+  const addr = server.address();
+  const bind = typeof addr === 'string'
+    ? 'pipe ' + addr
+    : 'port ' + addr.port;
+  debug('Listening on ' + bind);
+}
+
+server.on('error', onError);
+server.on('listening', onListening);
+
+//#endregion
+
